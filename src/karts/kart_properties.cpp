@@ -184,11 +184,13 @@ void KartProperties::copyFrom(const KartProperties *source)
 }   // copyFrom
 
 //-----------------------------------------------------------------------------
-void KartProperties::handleOnDemandLoadTexture()
+std::vector<std::string> KartProperties::handleOnDemandLoadTexture()
 {
+    std::vector<std::string> odt;
 #ifndef SERVER_ONLY
     if (GE::getDriver()->getDriverType() != video::EDT_VULKAN)
-        return;
+        return odt;
+
     std::set<std::string> files;
     // Remove the last /
     m_root_absolute_path = StringUtils::getPath(m_root);
@@ -205,9 +207,13 @@ void KartProperties::handleOnDemandLoadTexture()
     {
         if (image_extensions.find(StringUtils::getExtension(f)) !=
             image_extensions.end())
+        {
             GE::getGEConfig()->m_ondemand_load_texture_paths.insert(f);
+            odt.push_back(f);
+        }
     }
 #endif
+    return odt;
 }   // handleOnDemandLoadTexture
 
 //-----------------------------------------------------------------------------
@@ -254,7 +260,7 @@ void KartProperties::load(const std::string &filename, const std::string &node)
         m_is_addon = true;
     }
 
-    handleOnDemandLoadTexture();
+    std::vector<std::string> odt = handleOnDemandLoadTexture();
     try
     {
         if(!root || root->getName()!="kart")
@@ -373,7 +379,10 @@ void KartProperties::load(const std::string &filename, const std::string &node)
 
 #ifndef SERVER_ONLY
     if (GE::getDriver()->getDriverType() == video::EDT_VULKAN)
-        GE::getGEConfig()->m_ondemand_load_texture_paths.clear();
+    {
+        for (auto& t : odt)
+            GE::getGEConfig()->m_ondemand_load_texture_paths.erase(t);
+    }
 #endif
 }   // load
 
