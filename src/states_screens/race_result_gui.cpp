@@ -1274,7 +1274,9 @@ void RaceResultGUI::renderGlobal(float dt)
                 break;
             case RR_INCREASE_POINTS:
             {
+#ifndef NDEBUG
                 WorldWithRank *wwr = dynamic_cast<WorldWithRank*>(World::getWorld());
+#endif
                 assert(wwr);
                 int most_points;
                 if (RaceManager::get()->isFollowMode())
